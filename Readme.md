@@ -6,6 +6,7 @@ Fully Typed Relational Redis store that supports Foreign Keys, Indexes. This all
 
 ```
 import * as redisSDK from 'handy-redis';
+import Store from 'relational-redis-store';
 
 type User = {
   id: string;
