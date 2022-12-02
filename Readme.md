@@ -1,64 +1,47 @@
-# is-isodatetime
+# relational-redis-store
 
-A Type Validator for ISO Date & Datetime
+Fully Typed Relational Redis store that supports Foreign Keys, Indexes. This allows queries to combine multiple records into the result out of the box.
 
 # Usage
 
-### Validate
+```
+import * as redisSDK from 'handy-redis';
+
+type User = {
+  id: string;
+  name: string;
+}
+
+type Game = {
+  id: string;
+  players: [User[id], User[id]];
+  winner?: User[id];
+}
+
+type CollectionMap = {
+  users: User;
+  games: Game;
+};
+
+const store = new Store<CollectionMap>(redisSDK.createHandyClient({
+  url: {REDIS_URL},
+}))
+
+// Create a Game
+
+store.addItemToCollection('games', {
+  players: ['a', 'b'],
+}, id, {
+  foreignKeys: {},
+});
+
+// Retrieve a Game
+
+store.getItemInCollection('games', id);
 
 ```
-import { isValidISODateTime } from "is-isodatetime";
 
-isValidISODateTime('2022-09-14T10:22:30.370Z'); // true
-isValidISODateTime('asdasd'); // false
+# To Do
 
-```
-
-### Transform
-
-```
-import { toISODateTime } from "is-isodatetime";
-
-
-
-toISODateTime('2022-09-14T10:22:30.370Z'); // '2022-09-14T10:22:30.370Z'
-
-const now = new Date();
-isValidISODateTime(now); // '2022-09-14T10:22:30.370Z'
-
-```
-
-### With [Zod](https://github.com/colinhacks/zod)
-
-```
-import { z } from "zod";
-import { isValidISODateTime } from "is-isodatetime";
-
-export const isoDatetimeToDate = z
-  .string()
-  .refine(isValidISODateTime)
-  .transform((s) => new Date(s));
-```
-
-
-### With [io-ts](https://github.com/gcanti/io-ts)
-
-```
-import * as io from 'io-ts';
-import { either } from 'fp-ts/lib/Either';
-import { parseISO } from 'date-fns';
-import { isValidISODateTime } from "is-isodatetime";
-
-export const isoDateTimeFromIsoString = new io.Type<ISODateTimeType, string, unknown>(
-  'ISODateTimeFromISOString',
-  (u): u is ISODateTimeType => io.string.is(u) && parseISO(u) instanceof Date,
-  (u, c) => either.chain(io.string.validate(u, c), (s) => {
-    try {
-      return io.success(toISODateTime(s));
-    } catch (e) {
-      return io.failure(u, c);
-    }
-  }),
-  String,
-);
-```
+- Atomicity
+- Transactions
