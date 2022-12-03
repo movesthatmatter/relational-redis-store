@@ -1,9 +1,8 @@
-import redisMock from 'redis-mock';
-import { Store } from './Store';
 import { Err, Ok } from 'ts-results';
 import { AsyncResult, AsyncResultWrapper } from 'ts-async-results';
 import { getRedisMockClient } from './redisMock';
 import { loggerUtil } from './logger';
+import { createMockStore } from './mockStoreFactory';
 
 type Guest = {
   avatarId: string;
@@ -25,12 +24,12 @@ type ChallengeRecord = {
     timeLimit: 'bullet30' | 'bullet1' | 'blitz2' | 'blitz3' | 'blitz5';
     preferredColor?: 'white' | 'black' | 'random';
     gameType?: 'chess';
-  },
+  };
   createdBy: string;
   createdAt: string;
   slug: string;
-  type: 'public' | 'private'; 
-}
+  type: 'public' | 'private';
+};
 
 type CollectionMap = {
   peers: Peer;
@@ -67,19 +66,18 @@ type QueueMap = {
   };
 };
 
-let redis = redisMock.createClient();
-let store: Store<CollectionMap, QueueMap> = new Store(getRedisMockClient(redis) as any);
+let store = createMockStore<CollectionMap, QueueMap>();
 
 beforeEach(() => {
-  redis.flushall();
+  store.flush();
 });
 
 beforeAll(() => {
-  loggerUtil.disable()
+  loggerUtil.disable();
 });
 
 afterAll(() => {
-  loggerUtil.enable()
+  loggerUtil.enable();
 });
 
 describe('Addition', () => {
@@ -117,7 +115,9 @@ describe('Addition', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -191,7 +191,9 @@ describe('Addition', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -237,9 +239,13 @@ describe('Addition', () => {
       isGuest: true,
     } as const;
 
-    await store.addItemToCollection('guests', guestInput1, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput1, 'g5', { foreignKeys: {} })
+      .resolve();
 
-    await store.addItemToCollection('guests', guestInput2, 'g7', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput2, 'g7', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -302,9 +308,13 @@ describe('Addition', () => {
       },
     } as const;
 
-    await store.addItemToCollection('guests', guestInput, 'g1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g1', { foreignKeys: {} })
+      .resolve();
 
-    await store.addItemToCollection('peers', peerInput, 'p1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', peerInput, 'p1', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       user: 'g1',
@@ -356,7 +366,9 @@ describe('Addition', () => {
       isGuest: true,
     } as const;
 
-    await store.addItemToCollection('guests', guestInput, 'g1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g1', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       user: 'g1',
@@ -409,7 +421,9 @@ describe('Getting Single Item', () => {
       },
     } as const;
 
-    await store.addItemToCollection('peers', input, undefined, { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', input, undefined, { foreignKeys: {} })
+      .resolve();
 
     const actual = await store.getItemInCollection('peers', '1').resolve();
 
@@ -422,8 +436,7 @@ describe('Getting Single Item', () => {
 
   test('Get Item with 1Level Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const redisClient = getRedisMockClient(redis);
-    const store = new Store(redisClient as any);
+    const store = createMockStore<CollectionMap, QueueMap>();
 
     const guestInput = {
       avatarId: '12',
@@ -431,7 +444,9 @@ describe('Getting Single Item', () => {
       isGuest: true,
     } as const;
 
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const peerInput = {
       hasJoinedRoom: false,
@@ -455,7 +470,7 @@ describe('Getting Single Item', () => {
 
     // Note: The spy has to be set after the addItemToCollection has been called
     //  otherwise the number goes up!
-    const redisExecMultiSpy = jest.spyOn(redisClient, 'execMulti');
+    const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
     const actual = await store.getItemInCollection('peers', 'p2').resolve();
 
@@ -477,15 +492,16 @@ describe('Getting Single Item', () => {
 
   test('Get Item with Nested Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const redisClient = getRedisMockClient(redis);
-    const store = new Store(redisClient as any);
+    const store = createMockStore<any>();
 
     const guestInput = {
       avatarId: '12',
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const peerInput = {
       hasJoinedRoom: false,
@@ -539,7 +555,7 @@ describe('Getting Single Item', () => {
 
     // Note: The spy has to be set after the addItemToCollection has been called
     //  otherwise the number goes up!
-    const redisExecMultiSpy = jest.spyOn(redisClient, 'execMulti');
+    const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
     const actual = await store.getItemInCollection('rooms', 'r7').resolve();
 
@@ -565,8 +581,7 @@ describe('Getting Single Item', () => {
 
   test('Get Item with Many Many Nested Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const redisClient = getRedisMockClient(redis);
-    const store = new Store(redisClient as any);
+    const store = createMockStore<any>();
 
     const guestInputG5 = {
       avatarId: '12',
@@ -587,9 +602,15 @@ describe('Getting Single Item', () => {
     } as const;
 
     await AsyncResult.all(
-      store.addItemToCollection('guests', guestInputG5, 'g5', { foreignKeys: {} }),
-      store.addItemToCollection('guests', guestInputG6, 'g6', { foreignKeys: {} }),
-      store.addItemToCollection('guests', guestInputG7, 'g7', { foreignKeys: {} })
+      store.addItemToCollection('guests', guestInputG5, 'g5', {
+        foreignKeys: {},
+      }),
+      store.addItemToCollection('guests', guestInputG6, 'g6', {
+        foreignKeys: {},
+      }),
+      store.addItemToCollection('guests', guestInputG7, 'g7', {
+        foreignKeys: {},
+      })
     ).resolve();
 
     const peerInputP2 = {
@@ -680,7 +701,7 @@ describe('Getting Single Item', () => {
 
     // Note: The spy has to be set after the addItemToCollection has been called
     //  otherwise the number goes up!
-    const redisExecMultiSpy = jest.spyOn(redisClient, 'execMulti');
+    const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
     const actual = await store.getItemInCollection('rooms', 'r7').resolve();
 
@@ -756,7 +777,9 @@ describe('Getting Multiple Items', () => {
       },
     } as const;
 
-    await store.addItemToCollection('peers', input1, undefined, { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', input1, undefined, { foreignKeys: {} })
+      .resolve();
 
     const input2 = {
       hasJoinedRoom: false,
@@ -770,9 +793,13 @@ describe('Getting Multiple Items', () => {
       },
     } as const;
 
-    await store.addItemToCollection('peers', input2, undefined, { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', input2, undefined, { foreignKeys: {} })
+      .resolve();
 
-    const actual = await store.getItemsInCollection('peers', ['1', '2']).resolve();
+    const actual = await store
+      .getItemsInCollection('peers', ['1', '2'])
+      .resolve();
 
     expect(actual.ok).toBe(true);
     expect(actual.val[0]).toEqual({
@@ -805,7 +832,9 @@ describe('Getting Multiple Items', () => {
       },
     } as const;
 
-    await store.addItemToCollection('peers', input1, undefined, { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', input1, undefined, { foreignKeys: {} })
+      .resolve();
 
     const input2 = {
       hasJoinedRoom: false,
@@ -825,7 +854,9 @@ describe('Getting Multiple Items', () => {
       })
       .resolve();
 
-    const actual = await store.getItemsInCollection('peers', ['1', '2']).resolve();
+    const actual = await store
+      .getItemsInCollection('peers', ['1', '2'])
+      .resolve();
 
     expect(actual.err).toBe(true);
     expect(actual.val).toBe('CollectionFieldInexistent');
@@ -833,8 +864,7 @@ describe('Getting Multiple Items', () => {
 
   test('Get Newly Added Items with Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const redisClient = getRedisMockClient(redis);
-    const store = new Store(redisClient as any);
+    const store = createMockStore();
 
     const guestG4 = {
       isGuest: true,
@@ -842,7 +872,9 @@ describe('Getting Multiple Items', () => {
       name: 'Lee',
     } as const;
 
-    await store.addItemToCollection('guests', guestG4, 'g4', { foreignKeys: {} });
+    await store.addItemToCollection('guests', guestG4, 'g4', {
+      foreignKeys: {},
+    });
 
     const peer1 = {
       hasJoinedRoom: false,
@@ -882,10 +914,12 @@ describe('Getting Multiple Items', () => {
 
     // Note: The spy has to be set after the addItemToCollection has been called
     //  otherwise the number goes up!
-    const redisHmgetSpy = jest.spyOn(redisClient, 'hmget');
-    const redisExecMultiSpy = jest.spyOn(redisClient, 'execMulti');
+    const redisHmgetSpy = jest.spyOn(store.redisClient, 'hmget');
+    const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
-    const actual = await store.getItemsInCollection('peers', ['1', '2']).resolve();
+    const actual = await store
+      .getItemsInCollection('peers', ['1', '2'])
+      .resolve();
 
     // Test Trips to the DB
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(1);
@@ -920,7 +954,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Lee',
     } as const;
 
-    await store.addItemToCollection('guests', guestG1, 'g1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG1, 'g1', { foreignKeys: {} })
+      .resolve();
 
     const guestG2 = {
       isGuest: true,
@@ -928,7 +964,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Lee',
     } as const;
 
-    await store.addItemToCollection('guests', guestG2, 'g2', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG2, 'g2', { foreignKeys: {} })
+      .resolve();
 
     const guestG3 = {
       isGuest: true,
@@ -936,7 +974,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Lee',
     } as const;
 
-    await store.addItemToCollection('guests', guestG3, 'g3', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG3, 'g3', { foreignKeys: {} })
+      .resolve();
 
     const result = await store.getAllItemsInCollection('guests').resolve();
 
@@ -957,8 +997,7 @@ describe('Retrieve All Items in collection', () => {
 
   test('All Items With Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const redisClient = getRedisMockClient(redis);
-    const store = new Store(redisClient as any);
+    const store = createMockStore();
 
     const guestG1 = {
       isGuest: true,
@@ -966,7 +1005,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Lee',
     } as const;
 
-    await store.addItemToCollection('guests', guestG1, 'g1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG1, 'g1', { foreignKeys: {} })
+      .resolve();
 
     const guestG2 = {
       isGuest: true,
@@ -974,7 +1015,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Chan',
     } as const;
 
-    await store.addItemToCollection('guests', guestG2, 'g2', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG2, 'g2', { foreignKeys: {} })
+      .resolve();
 
     const guestG3 = {
       isGuest: true,
@@ -982,7 +1025,9 @@ describe('Retrieve All Items in collection', () => {
       name: 'Keanu',
     } as const;
 
-    await store.addItemToCollection('guests', guestG3, 'g3', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestG3, 'g3', { foreignKeys: {} })
+      .resolve();
 
     const peerP1 = {
       hasJoinedRoom: false,
@@ -1025,8 +1070,8 @@ describe('Retrieve All Items in collection', () => {
 
     // Note: The spy has to be set after the addItemToCollection has been called
     //  otherwise the number goes up!
-    const redisHgetAllSpy = jest.spyOn(redisClient, 'hgetall');
-    const redisExecMultiSpy = jest.spyOn(redisClient, 'execMulti');
+    const redisHgetAllSpy = jest.spyOn(store.redisClient, 'hgetall');
+    const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
     const result = await store.getAllItemsInCollection('peers').resolve();
 
@@ -1153,7 +1198,9 @@ describe('Update', () => {
       },
     } as const;
 
-    await store.addItemToCollection('peers', input, 'p1', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('peers', input, 'p1', { foreignKeys: {} })
+      .resolve();
 
     const now = String(new Date());
 
@@ -1188,7 +1235,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -1210,7 +1259,7 @@ describe('Update', () => {
       })
       .resolve();
 
-      const now = String(new Date());
+    const now = String(new Date());
 
     const actual = await store
       .updateItemInCollection(
@@ -1237,7 +1286,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     // const updateGetterSpy = jest.fn();
 
@@ -1268,7 +1319,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -1338,7 +1391,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     // const updateGetterSpy = jest.fn();
 
@@ -1377,7 +1432,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     // const updateGetterSpy = jest.fn();
 
@@ -1408,7 +1465,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -1481,7 +1540,9 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
-    await store.addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} }).resolve();
+    await store
+      .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
+      .resolve();
 
     const input = {
       hasJoinedRoom: false,
@@ -1579,10 +1640,17 @@ describe('Update', () => {
 
     // Update the item
     await store
-      .updateItemInCollection('challenges', 'c1', { createdBy: 'u222' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'challenges',
+        'c1',
+        { createdBy: 'u222' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
-    const actualItemAfterUpdate = await store.getItemInCollection('challenges', 'c1').resolve();
+    const actualItemAfterUpdate = await store
+      .getItemInCollection('challenges', 'c1')
+      .resolve();
 
     expect(actualItemAfterUpdate.ok).toBe(true);
     expect(actualItemAfterUpdate.val).toEqual({
@@ -1650,7 +1718,12 @@ describe('Update', () => {
 
     // Update the item to a new Index Vlaue (createdBy)
     await store
-      .updateItemInCollection('challenges', 'c1', { createdBy: 'u2' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'challenges',
+        'c1',
+        { createdBy: 'u2' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const actualItemAfterUpdateToNewValue = await store
@@ -1666,7 +1739,12 @@ describe('Update', () => {
 
     // Update the item to another new Index Vlaue (createdBy)
     await store
-      .updateItemInCollection('challenges', 'c1', { createdBy: 'u3' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'challenges',
+        'c1',
+        { createdBy: 'u3' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const actualItemAfterUpdateToNewerValue = await store
@@ -1682,7 +1760,12 @@ describe('Update', () => {
 
     // Update the item to the previous Index Value (createdBy)
     await store
-      .updateItemInCollection('challenges', 'c1', { createdBy: 'u1' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'challenges',
+        'c1',
+        { createdBy: 'u1' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const actualItemAfterUpdateToOldValue = await store
@@ -1736,7 +1819,12 @@ describe('Update', () => {
 
     // Update the item to a new Index Vlaue (createdBy)
     await store
-      .updateItemInCollection('challenges', 'c1', { createdBy: 'u2' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'challenges',
+        'c1',
+        { createdBy: 'u2' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const actualItemAfterUpdateToNewValue = await store
@@ -1794,7 +1882,9 @@ describe('Update', () => {
       id: 'c1',
     });
 
-    const itemByType = await store.getItemInCollectionBy('challenges', 'type', 'private').resolve();
+    const itemByType = await store
+      .getItemInCollectionBy('challenges', 'type', 'private')
+      .resolve();
 
     expect(itemByType.ok).toBe(true);
     expect(itemByType.val).toEqual({
@@ -1802,7 +1892,9 @@ describe('Update', () => {
       id: 'c1',
     });
 
-    const itemBySlug = await store.getItemInCollectionBy('challenges', 'slug', 'asda').resolve();
+    const itemBySlug = await store
+      .getItemInCollectionBy('challenges', 'slug', 'asda')
+      .resolve();
 
     expect(itemBySlug.ok).toBe(true);
     expect(itemBySlug.val).toEqual({
@@ -1820,7 +1912,9 @@ describe('Update', () => {
       )
       .resolve();
 
-    const actualItemAfterUpdate = await store.getItemInCollection('challenges', 'c1').resolve();
+    const actualItemAfterUpdate = await store
+      .getItemInCollection('challenges', 'c1')
+      .resolve();
 
     expect(actualItemAfterUpdate.ok).toBe(true);
     expect(actualItemAfterUpdate.val).toEqual({
@@ -1897,7 +1991,9 @@ describe('Removal', () => {
       length: 1,
     });
 
-    const removeRes = await store.removeItemInCollection('peers', '1').resolve();
+    const removeRes = await store
+      .removeItemInCollection('peers', '1')
+      .resolve();
 
     expect(removeRes.ok).toBe(true);
     expect(removeRes.val).toEqual({
@@ -1906,7 +2002,9 @@ describe('Removal', () => {
       length: 0,
     });
 
-    const actualAfterRemoval = await store.getItemInCollection('peers', '1').resolve();
+    const actualAfterRemoval = await store
+      .getItemInCollection('peers', '1')
+      .resolve();
 
     expect(actualAfterRemoval.ok).toBe(false);
     expect(actualAfterRemoval.val).toBe('CollectionFieldInexistent');
@@ -1952,7 +2050,9 @@ describe('Removal', () => {
     // // Remove the item
     await store.removeItemInCollection('challenges', 'c1').resolve();
 
-    const actualItemAfterRemoval = await store.getItemInCollection('challenges', 'c1').resolve();
+    const actualItemAfterRemoval = await store
+      .getItemInCollection('challenges', 'c1')
+      .resolve();
 
     expect(actualItemAfterRemoval.ok).toBe(false);
     expect(actualItemAfterRemoval.val).toBe('CollectionFieldInexistent');
@@ -2038,7 +2138,9 @@ describe('Removal', () => {
     // Remove the item
     await store.removeItemInCollection('challenges', 'c1').resolve();
 
-    const actualItemAfterRemoval = await store.getItemInCollection('challenges', 'c1').resolve();
+    const actualItemAfterRemoval = await store
+      .getItemInCollection('challenges', 'c1')
+      .resolve();
 
     expect(actualItemAfterRemoval.ok).toBe(false);
 
@@ -2058,7 +2160,9 @@ describe('Removal', () => {
       .resolve();
 
     expect(newItemByPreviousCreatedByIndex.ok).toBe(false);
-    expect(newItemByPreviousCreatedByIndex.val).toBe('CollectionFieldInexistent');
+    expect(newItemByPreviousCreatedByIndex.val).toBe(
+      'CollectionFieldInexistent'
+    );
 
     // Attempt to get by createdAt
     const newItemByPreviousCreatedAtIndex = await store
@@ -2066,7 +2170,9 @@ describe('Removal', () => {
       .resolve();
 
     expect(newItemByPreviousCreatedAtIndex.ok).toBe(false);
-    expect(newItemByPreviousCreatedAtIndex.val).toBe('CollectionFieldInexistent');
+    expect(newItemByPreviousCreatedAtIndex.val).toBe(
+      'CollectionFieldInexistent'
+    );
 
     // Attempt to get by type
     const newItemByPreviousTypeIndex = await store
@@ -2115,9 +2221,13 @@ describe('Removal', () => {
     });
 
     // // Remove the item
-    await store.removeItemInCollectionBy('challenges', 'createdBy', 'u1').resolve();
+    await store
+      .removeItemInCollectionBy('challenges', 'createdBy', 'u1')
+      .resolve();
 
-    const actualItemAfterRemoval = await store.getItemInCollection('challenges', 'c1').resolve();
+    const actualItemAfterRemoval = await store
+      .getItemInCollection('challenges', 'c1')
+      .resolve();
 
     expect(actualItemAfterRemoval.ok).toBe(false);
     expect(actualItemAfterRemoval.val).toBe('CollectionFieldInexistent');
@@ -2150,17 +2260,23 @@ describe('Queue', () => {
 
       await store.enqueue('quickPairings', qpInput1).resolve();
 
-      const actualBeforeRemoval = await store.getQueueSize('quickPairings').resolve();
+      const actualBeforeRemoval = await store
+        .getQueueSize('quickPairings')
+        .resolve();
 
       expect(actualBeforeRemoval.ok).toBe(true);
       expect(actualBeforeRemoval.val).toBe(1);
 
-      const removalResponse = await store.removeFromQueue('quickPairings', qpInput1).resolve();
+      const removalResponse = await store
+        .removeFromQueue('quickPairings', qpInput1)
+        .resolve();
 
       expect(removalResponse.ok).toBe(true);
       expect(removalResponse.val).toBe(undefined);
 
-      const actualAfterRemoval = await store.getQueueSize('quickPairings').resolve();
+      const actualAfterRemoval = await store
+        .getQueueSize('quickPairings')
+        .resolve();
 
       expect(actualAfterRemoval.ok).toBe(true);
       expect(actualAfterRemoval.val).toBe(0);
@@ -2173,7 +2289,9 @@ describe('Queue', () => {
 
       await store.enqueue('quickPairings', qpInput1).resolve();
 
-      const actualBeforeRemoval = await store.getQueueSize('quickPairings').resolve();
+      const actualBeforeRemoval = await store
+        .getQueueSize('quickPairings')
+        .resolve();
 
       expect(actualBeforeRemoval.ok).toBe(true);
       expect(actualBeforeRemoval.val).toBe(1);
@@ -2188,7 +2306,9 @@ describe('Queue', () => {
       expect(removalResponse.ok).toBe(false);
       expect(removalResponse.val).toBe('QueueItemNotFound');
 
-      const actualAfterRemoval = await store.getQueueSize('quickPairings').resolve();
+      const actualAfterRemoval = await store
+        .getQueueSize('quickPairings')
+        .resolve();
 
       expect(actualAfterRemoval.ok).toBe(true);
       expect(actualAfterRemoval.val).toBe(1);
@@ -2206,7 +2326,9 @@ describe('Queue', () => {
 
       await store.enqueue('queueWithManyKeys', qpInput1).resolve();
 
-      const actualBeforeRemoval = await store.getQueueSize('queueWithManyKeys').resolve();
+      const actualBeforeRemoval = await store
+        .getQueueSize('queueWithManyKeys')
+        .resolve();
 
       expect(actualBeforeRemoval.ok).toBe(true);
       expect(actualBeforeRemoval.val).toBe(1);
@@ -2226,7 +2348,9 @@ describe('Queue', () => {
       expect(removalResponse.ok).toBe(true);
       expect(removalResponse.val).toBe(undefined);
 
-      const actualAfterRemoval = await store.getQueueSize('quickPairings').resolve();
+      const actualAfterRemoval = await store
+        .getQueueSize('quickPairings')
+        .resolve();
 
       expect(actualAfterRemoval.ok).toBe(true);
       expect(actualAfterRemoval.val).toBe(0);
@@ -2277,8 +2401,12 @@ describe('Atomic: Lock', () => {
       )
       .resolve();
 
-    const resG1 = await store.getItemInCollection('simpleItems', 'g1').resolve();
-    const resG2 = await store.getItemInCollection('simpleItems', 'g2').resolve();
+    const resG1 = await store
+      .getItemInCollection('simpleItems', 'g1')
+      .resolve();
+    const resG2 = await store
+      .getItemInCollection('simpleItems', 'g2')
+      .resolve();
 
     expect(resG1.ok).toBe(true);
     expect(resG1.val).toEqual({
@@ -2324,7 +2452,12 @@ describe('Atomic: Lock', () => {
     // Set a lower delay to simulate network differences
     getRedisMockClient.DELAY = 50;
     await store
-      .updateItemInCollection('simpleItems', 'g1', { name: 'Arnold' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'simpleItems',
+        'g1',
+        { name: 'Arnold' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const res = await store.getItemInCollection('simpleItems', 'g1').resolve();
@@ -2365,7 +2498,12 @@ describe('Atomic: Lock', () => {
     // Set a lower delay to simulate network differences
     getRedisMockClient.DELAY = 50;
     await store
-      .updateItemInCollection('simpleItems', 'g1', { name: 'Arnold' }, { foreignKeys: {} })
+      .updateItemInCollection(
+        'simpleItems',
+        'g1',
+        { name: 'Arnold' },
+        { foreignKeys: {} }
+      )
       .resolve();
 
     const res = await store.getItemInCollection('simpleItems', 'g1').resolve();

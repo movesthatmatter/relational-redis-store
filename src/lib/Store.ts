@@ -1,3 +1,6 @@
+import flatten from 'flatten';
+import deepEqual from 'deep-equal';
+import deepmerge from 'deepmerge';
 import {
   AsyncResult,
   AsyncResultWrapper,
@@ -5,10 +8,7 @@ import {
   AsyncOk,
 } from 'ts-async-results';
 import { Result, Ok, Err } from 'ts-results';
-import deepEqual from 'deep-equal';
-import deepmerge from 'deepmerge';
 import { IHandyRedis } from 'handy-redis';
-import flatten from 'flatten';
 import jsonStableStringify from 'json-stable-stringify';
 import {
   UnidentifiableModel,
@@ -49,9 +49,13 @@ export class Store<
     string,
   QueueKey extends keyof QueueMap & string = keyof QueueMap & string
 > {
+  public redisClient: IHandyRedis;
+
   private redisLock: (resource: string) => Promise<(done?: () => void) => void>;
 
   constructor(private redis: IHandyRedis) {
+    this.redisClient = this.redis;
+
     this.redis.redis.on('connect', () => {
       logger.info('[Store] Redis Connected', {
         connection: this.redis.redis.connection_id,
@@ -1111,10 +1115,12 @@ export class Store<
 
   flush() {
     return new AsyncResultWrapper(() => {
-      return this.redis
-        .flushall()
-        .then((v) => new Ok(v))
-        .catch(() => new Err('GenericRedisFailure'));
+      return new Promise<Result<boolean, 'GenericRedisFailure'>>(() => {
+        this.redis.redis.flushall();
+
+        // Ensure this
+        return Ok.EMPTY;
+      });
     });
   }
 }
