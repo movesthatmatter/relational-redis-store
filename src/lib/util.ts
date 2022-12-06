@@ -1,3 +1,5 @@
+import { AsyncResult } from 'ts-async-results';
+
 export type UnidentifiableModel<T extends {}> = Omit<T, 'id'>;
 export type ModelWithoutTimestamps<T extends {}> = Omit<T, 'createdAt' | 'updatedAt'>;
 
@@ -90,6 +92,10 @@ export type CollectionItemWithForeignKeys<
   FKs extends ForeignKeys<T, CollectionsMap>
 > = NewObjKeysFromForeignKeys<T, CollectionsMap, FKs>;
 
+export type CollectionItemWithoutForeignKeys<
+  T extends {}
+> = T;
+
 export type CollectionItem<
   T extends {},
   CollectionsMap extends CollectionMapBase = {},
@@ -101,17 +107,20 @@ export type OnlyKeysOfType<T, O extends {}> = { [K in keyof O]: IsOfType<T, O[K]
 
 type ObjectWithOnlyKeysOfType<T, O extends {}> = Pick<O, OnlyKeysOfType<T, O>>;
 
-export type CollectionItemUpdateableProps<
-  T extends {},
-  CollectionMap extends {},
-  FKs extends ForeignKeys<T, CollectionMap>
-> = Partial<CollectionItem<ModelWithoutTimestamps<UnidentifiableModel<T>>, CollectionMap, FKs>>;
+export type CollectionItemUpdateableProps<T extends {}> = Partial<
+  CollectionItemWithoutForeignKeys<UnidentifiableModel<T>>
+>;
 
-export type CollectionItemUpdateablePrev<
-  T extends {},
-  CollectionMap extends {},
-  FKs extends ForeignKeys<T, CollectionMap>
-> = CollectionItem<ModelWithoutTimestamps<UnidentifiableModel<T>>, CollectionMap, FKs>;
+export type CollectionItemUpdateablePrev<T extends {}> =
+  CollectionItemWithoutForeignKeys<UnidentifiableModel<T>>;
+
+export type UpdateableCollectionPropsGetter<T extends {}> =
+  | CollectionItemUpdateableProps<T>
+  | ((
+      prev: CollectionItemUpdateablePrev<T>
+    ) =>
+      | CollectionItemUpdateableProps<T>
+      | AsyncResult<CollectionItemUpdateableProps<T>, unknown>);
 
 export const toCollectionId = (collection: string, id: string) => `${collection}:${id}`;
 export const fromCollectionId = (collection: string, formattedId: string) => {
@@ -128,3 +137,4 @@ export const toIndexedCollectionName = (collection: string, byField: string | nu
 export const getByFieldNameFromIndexedCollection = (indexedCollection: string) => indexedCollection.split(':by:')[1];
 
 export const objectKeys = <O extends object>(o: O) => Object.keys(o) as (keyof O)[];
+

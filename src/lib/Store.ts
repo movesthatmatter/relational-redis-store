@@ -26,6 +26,8 @@ import {
   getByFieldNameFromIndexedCollection,
   toIndexedCollectionName,
   objectKeys,
+  CollectionItemWithoutForeignKeys,
+  UpdateableCollectionPropsGetter,
 } from './util';
 import redisLock from 'redis-lock';
 import { promisify } from 'util';
@@ -746,18 +748,7 @@ export class Store<
   >(
     collection: K,
     id: string,
-    itemModelGetter:
-      | Partial<CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>>
-      | ((
-          prev: CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>
-        ) =>
-          | Partial<CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>>
-          | AsyncResult<
-              Partial<
-                CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>
-              >,
-              unknown
-            >),
+    itemModelGetter: UpdateableCollectionPropsGetter<T>,
     opts: {
       foreignKeys: FKs;
     }
@@ -793,10 +784,8 @@ export class Store<
                 const unresolvedItemModel =
                   typeof itemModelGetter === 'function'
                     ? itemModelGetter(
-                        prev.val as unknown as CollectionItem<
-                          UnidentifiableModel<T>,
-                          CollectionMap,
-                          FKs
+                        prev.val as unknown as CollectionItemWithoutForeignKeys<
+                          UnidentifiableModel<T>
                         >
                       )
                     : itemModelGetter;
