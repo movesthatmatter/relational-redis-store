@@ -51,11 +51,18 @@ export class Store<
     string,
   QueueKey extends keyof QueueMap & string = keyof QueueMap & string
 > {
+  public namespace;
+
   public redisClient: IHandyRedis;
 
   private redisLock: (resource: string) => Promise<(done?: () => void) => void>;
 
-  constructor(private redis: IHandyRedis) {
+  constructor(
+    private redis: IHandyRedis,
+    config?: {
+      namespace?: string;
+    }
+  ) {
     this.redisClient = this.redis;
 
     this.redis.redis.on('connect', () => {
@@ -72,6 +79,8 @@ export class Store<
     });
 
     this.redisLock = promisify(redisLock(redis.redis));
+
+    this.namespace = config?.namespace ? `${config?.namespace}::` : '';
   }
 
   lockCollection<K extends CollectionKey>(collection: K) {
@@ -82,13 +91,16 @@ export class Store<
     return this.redisLock(`locked:${collection}:${id}`);
   }
 
+  private toCollectionKey = <K extends CollectionKey>(collection: K) =>
+    `${this.namespace}${collection}` as K;
+
   addItemToCollection<
     K extends CollectionKey,
     T extends CollectionMap[K],
     IndexBy extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>,
     FKs extends ForeignKeys<T, CollectionMap>
   >(
-    collection: K,
+    rawCollection: K,
     val: CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>,
     id?: string,
     opts: {
@@ -98,6 +110,8 @@ export class Store<
       foreignKeys: {} as FKs,
     }
   ): AsyncResult<CollectionItemOrReply<T>, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper<CollectionItemOrReply<T>, StoreErrors>(
       async () => {
         // Lock the resource so only one addition happens at a time
@@ -190,8 +204,10 @@ export class Store<
   }
 
   getCollectionIndex<K extends CollectionKey>(
-    collection: K
+    rawCollection: K
   ): AsyncResult<number, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const v = await this.redis.hget(collection, '_index');
 
@@ -205,8 +221,10 @@ export class Store<
   }
 
   getCollectionLength<K extends CollectionKey>(
-    collection: K
+    rawCollection: K
   ): AsyncResult<number, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       try {
         const v = await this.redis.hlen(collection);
@@ -438,9 +456,11 @@ export class Store<
     K extends CollectionKey,
     T extends CollectionMap[K]
   >(
-    collection: K,
+    rawCollection: K,
     ids: string[]
   ): AsyncResult<CollectionItemMetadataReply<T, CollectionMap>[], StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return this.getShallowItemsInCollectionWithMetadata(collection, ids)
       .flatMap(
         (itemsMetadata) =>
@@ -463,12 +483,15 @@ export class Store<
     K extends CollectionKey,
     T extends CollectionMap[K]
   >(
-    collection: K,
+    rawCollection: K,
     ids: string[]
   ): AsyncResult<CollectionItemMetadata<T, CollectionMap>[], StoreErrors> {
     if (ids.length === 0) {
       return new AsyncOk([]);
     }
+
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const redisReplies = await this.redis.hmget(
         collection,
@@ -509,9 +532,11 @@ export class Store<
   }
 
   getItemInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    collection: K,
+    rawCollection: K,
     id: string
   ): AsyncResult<T, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return this.getItemsInCollectionWithMetadata<K, T>(collection, [id]).map(
       ([m]) => this.metadataReplyToCollectionItem(m)
     );
@@ -522,10 +547,12 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    collection: K,
+    rawCollection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<T, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const referencedId = await this.redis.hget(
         toIndexedCollectionName(collection, String(byKey)),
@@ -548,10 +575,12 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    collection: K,
+    rawCollection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<string, void> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const referencedId = await this.redis.hget(
         toIndexedCollectionName(collection, String(byKey)),
@@ -567,9 +596,11 @@ export class Store<
   }
 
   getItemsInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    collection: K,
+    rawCollection: K,
     ids: string[]
   ): AsyncResult<T[], StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return this.getItemsInCollectionWithMetadata<K, T>(collection, ids).map(
       (metadatas) => metadatas.map((m) => this.metadataReplyToCollectionItem(m))
     );
@@ -615,8 +646,10 @@ export class Store<
   }
 
   getAllItemsInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    collection: K
+    rawCollection: K
   ): AsyncResult<T[], StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const resultHash = await this.redis.hgetall(collection);
 
@@ -706,9 +739,11 @@ export class Store<
   // }
 
   isItemInCollection<K extends CollectionKey>(
-    collection: K,
+    rawCollection: K,
     id: string
   ): AsyncResult<boolean, never> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return this.getShallowItemsInCollectionWithMetadata<K, any>(collection, [
       id,
     ])
@@ -721,10 +756,12 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    collection: K,
+    rawCollection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<boolean, never> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper<string, void>(async () => {
       const referencedId = await this.redis.hget(
         toIndexedCollectionName(collection, String(byKey)),
@@ -746,13 +783,15 @@ export class Store<
     T extends CollectionMap[K],
     FKs extends ForeignKeys<T, CollectionMap>
   >(
-    collection: K,
+    rawCollection: K,
     id: string,
     itemModelGetter: UpdateableCollectionPropsGetter<T>,
     opts: {
       foreignKeys: FKs;
     }
   ): AsyncResult<T, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       const unlock = await this.lockCollectionItem(collection, id);
 
@@ -935,8 +974,10 @@ export class Store<
   }
 
   removeCollection<K extends CollectionKey>(
-    collection: K
+    rawCollection: K
   ): AsyncResult<void, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper(async () => {
       try {
         await this.redis.del(collection);
@@ -949,9 +990,11 @@ export class Store<
   }
 
   removeItemInCollection<K extends CollectionKey>(
-    collection: K,
+    rawCollection: K,
     id: string
   ): AsyncResult<CollectionItemRemovalReply, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return new AsyncResultWrapper<CollectionItemRemovalReply, StoreErrors>(
       async () => {
         const field = toCollectionId(collection, id);
@@ -1031,10 +1074,12 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    collection: K,
+    rawCollection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<CollectionItemRemovalReply, StoreErrors> {
+    const collection = this.toCollectionKey(rawCollection);
+
     return this.getIndexedItemReference<K, T, F>(collection, byKey, keyVal)
       .flatMap((id) => this.removeItemInCollection(collection, id))
       .flatMapErr(() => new Err('CollectionFieldInexistent'));
