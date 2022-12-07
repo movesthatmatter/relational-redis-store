@@ -98,15 +98,16 @@ describe('Addition', () => {
       .addItemToCollection('peers', input, undefined, { foreignKeys: {} })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: '1',
-      },
-      index: 1,
-      length: 1,
-    });
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: '1',
+        },
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Addition with "oneToMany" ForeignKeys', async () => {
@@ -138,21 +139,22 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {
-          g5: {
-            ...guestInput,
-            id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {
+            g5: {
+              ...guestInput,
+              id: 'g5',
+            },
           },
         },
-      },
-      index: 1,
-      length: 1,
-    });
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Addition with "oneToMany" ForeignKeys but empty ForeignValues', async () => {
@@ -173,16 +175,17 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {},
-      },
-      index: 1,
-      length: 1,
-    });
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {},
+        },
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Addition with ForeignKey as Single Value (one to one relationship)', async () => {
@@ -212,19 +215,20 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {
-          ...guestInput,
-          id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {
+            ...guestInput,
+            id: 'g5',
+          },
         },
-      },
-      index: 1,
-      length: 1,
-    });
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Addition with with multiple ForeignKeys and multiple Values', async () => {
@@ -267,25 +271,26 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {
-          g5: {
-            ...guestInput1,
-            id: 'g5',
-          },
-          g7: {
-            ...guestInput2,
-            id: 'g7',
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {
+            g5: {
+              ...guestInput1,
+              id: 'g5',
+            },
+            g7: {
+              ...guestInput2,
+              id: 'g7',
+            },
           },
         },
-      },
-      index: 1,
-      length: 1,
-    });
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Addition with with a "oneToOne" & "oneToMany" ForeignKeys Collections', async () => {
@@ -338,25 +343,26 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {
-          id: 'g1',
-          ...guestInput,
-        },
-        peer: {
-          p1: {
-            id: 'p1',
-            ...peerInput,
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {
+            id: 'g1',
+            ...guestInput,
+          },
+          peer: {
+            p1: {
+              id: 'p1',
+              ...peerInput,
+            },
           },
         },
-      },
-      index: 1,
-      length: 1,
-    });
+        index: 1,
+        length: 1,
+      })
+    );
   });
 
   test('Test Former Bug – Addition with with a "oneToOne" and "oneToMany" ForeignKeys Collections but the "oneToMany" values dont exist yet"', async () => {
@@ -390,20 +396,21 @@ describe('Addition', () => {
       })
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      item: {
-        ...input,
-        id: 'p3',
-        user: {
-          id: 'g1',
-          ...guestInput,
+    expect(actual).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: 'p3',
+          user: {
+            id: 'g1',
+            ...guestInput,
+          },
+          peer: {},
         },
-        peer: {},
-      },
-      index: 1,
-      length: 1,
-    });
+        index: 1,
+        length: 1,
+      })
+    );
   });
 });
 
@@ -427,11 +434,12 @@ describe('Getting Single Item', () => {
 
     const actual = await store.getItemInCollection('peers', '1').resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...input,
-      id: '1',
-    });
+    expect(actual).toEqual(
+      new Ok({
+        ...input,
+        id: '1',
+      })
+    );
   });
 
   test('Get Item with 1Level Foreign Keys', async () => {
@@ -475,17 +483,18 @@ describe('Getting Single Item', () => {
     const actual = await store.getItemInCollection('peers', 'p2').resolve();
 
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(1);
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...peerInput,
-      id: 'p2',
-      user: {
-        g5: {
-          ...guestInput,
-          id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        ...peerInput,
+        id: 'p2',
+        user: {
+          g5: {
+            ...guestInput,
+            id: 'g5',
+          },
         },
-      },
-    });
+      })
+    );
   });
 
   //   // TODO: Add test for a nested foreign key value inexistent
@@ -559,24 +568,26 @@ describe('Getting Single Item', () => {
 
     const actual = await store.getItemInCollection('rooms', 'r7').resolve();
 
-    expect(actual.ok).toBe(true);
+    // expect(actual.ok).toBe(true);
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(2);
-    expect(actual.val).toEqual({
-      ...roomInput,
-      id: 'r7',
-      peers: {
-        p3: {
-          ...peerInput,
-          id: 'p3',
-          user: {
-            g5: {
-              ...guestInput,
-              id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        ...roomInput,
+        id: 'r7',
+        peers: {
+          p3: {
+            ...peerInput,
+            id: 'p3',
+            user: {
+              g5: {
+                ...guestInput,
+                id: 'g5',
+              },
             },
           },
         },
-      },
-    });
+      })
+    );
   });
 
   test('Get Item with Many Many Nested Foreign Keys', async () => {
@@ -707,59 +718,60 @@ describe('Getting Single Item', () => {
 
     // Test Trips to the DB
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(2);
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...roomInput,
-      id: 'r7',
-      peers: {
-        p3: {
-          ...peerInputP3,
-          id: 'p3',
-          user: {
-            g6: {
-              ...guestInputG6,
-              id: 'g6',
+    expect(actual).toEqual(
+      new Ok({
+        ...roomInput,
+        id: 'r7',
+        peers: {
+          p3: {
+            ...peerInputP3,
+            id: 'p3',
+            user: {
+              g6: {
+                ...guestInputG6,
+                id: 'g6',
+              },
+              g7: {
+                ...guestInputG7,
+                id: 'g7',
+              },
             },
-            g7: {
-              ...guestInputG7,
-              id: 'g7',
+          },
+          p2: {
+            ...peerInputP2,
+            id: 'p2',
+            user: {
+              g6: {
+                ...guestInputG6,
+                id: 'g6',
+              },
+              g5: {
+                ...guestInputG5,
+                id: 'g5',
+              },
+            },
+          },
+          p4: {
+            ...peerInputP4,
+            id: 'p4',
+            user: {
+              g6: {
+                ...guestInputG6,
+                id: 'g6',
+              },
+              g5: {
+                ...guestInputG5,
+                id: 'g5',
+              },
+              g7: {
+                ...guestInputG7,
+                id: 'g7',
+              },
             },
           },
         },
-        p2: {
-          ...peerInputP2,
-          id: 'p2',
-          user: {
-            g6: {
-              ...guestInputG6,
-              id: 'g6',
-            },
-            g5: {
-              ...guestInputG5,
-              id: 'g5',
-            },
-          },
-        },
-        p4: {
-          ...peerInputP4,
-          id: 'p4',
-          user: {
-            g6: {
-              ...guestInputG6,
-              id: 'g6',
-            },
-            g5: {
-              ...guestInputG5,
-              id: 'g5',
-            },
-            g7: {
-              ...guestInputG7,
-              id: 'g7',
-            },
-          },
-        },
-      },
-    });
+      })
+    );
   });
 });
 
@@ -801,22 +813,33 @@ describe('Getting Multiple Items', () => {
       .getItemsInCollection('peers', ['1', '2'])
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val[0]).toEqual({
-      ...input1,
-      id: '1',
-    });
-    expect(actual.val[1]).toEqual({
-      ...input2,
-      id: '2',
-    });
+    expect(actual).toEqual(
+      new Ok([
+        {
+          ...input1,
+          id: '1',
+        },
+        {
+          ...input2,
+          id: '2',
+        },
+      ])
+    );
   });
+
+  const errWithoutStack = <E extends ReturnType<typeof Err>>(e: E) => {
+    return {
+      err: e.err,
+      ok: e.ok,
+      val: e.val,
+    };
+  };
 
   test('Attempting to get an Inexistent Items W/O Foreign Keys Throws an InexistentCollectionField  Error', async () => {
     const actual = await store.getItemsInCollection('peers', ['1']).resolve();
 
     expect(actual.err).toBe(true);
-    expect(actual.val).toBe('CollectionFieldInexistent');
+    expect(actual.val).toEqual('CollectionFieldInexistent');
   });
 
   test('Attempting to get an Item with Inexistent Foreign Items Throws an InexistentCollectionField Error', async () => {
@@ -925,24 +948,26 @@ describe('Getting Multiple Items', () => {
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(1);
     expect(redisHmgetSpy).toHaveBeenCalledTimes(1);
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val[0]).toEqual({
-      ...peer1,
-      id: '1',
-      user: {
-        ...guestG4,
-        id: 'g4',
-      },
-    });
-
-    expect(actual.val[1]).toEqual({
-      ...peer1,
-      id: '2',
-      user: {
-        ...guestG4,
-        id: 'g4',
-      },
-    });
+    expect(actual).toEqual(
+      new Ok([
+        {
+          ...peer1,
+          id: '1',
+          user: {
+            ...guestG4,
+            id: 'g4',
+          },
+        },
+        {
+          ...peer1,
+          id: '2',
+          user: {
+            ...guestG4,
+            id: 'g4',
+          },
+        },
+      ])
+    );
   });
 });
 
@@ -978,21 +1003,24 @@ describe('Retrieve All Items in collection', () => {
       .addItemToCollection('guests', guestG3, 'g3', { foreignKeys: {} })
       .resolve();
 
-    const result = await store.getAllItemsInCollection('guests').resolve();
+    const actual = await store.getAllItemsInCollection('guests').resolve();
 
-    expect(result.ok).toBe(true);
-    expect(result.val[0]).toEqual({
-      ...guestG1,
-      id: 'g1',
-    });
-    expect(result.val[1]).toEqual({
-      ...guestG2,
-      id: 'g2',
-    });
-    expect(result.val[2]).toEqual({
-      ...guestG3,
-      id: 'g3',
-    });
+    expect(actual).toEqual(
+      new Ok([
+        {
+          ...guestG1,
+          id: 'g1',
+        },
+        {
+          ...guestG2,
+          id: 'g2',
+        },
+        {
+          ...guestG3,
+          id: 'g3',
+        },
+      ])
+    );
   });
 
   test('All Items With Foreign Keys', async () => {
@@ -1073,34 +1101,37 @@ describe('Retrieve All Items in collection', () => {
     const redisHgetAllSpy = jest.spyOn(store.redisClient, 'hgetall');
     const redisExecMultiSpy = jest.spyOn(store.redisClient, 'execMulti');
 
-    const result = await store.getAllItemsInCollection('peers').resolve();
+    const actual = await store.getAllItemsInCollection('peers').resolve();
 
-    expect(result.ok).toBe(true);
     expect(redisHgetAllSpy).toHaveBeenCalledTimes(1);
     expect(redisExecMultiSpy).toHaveBeenCalledTimes(1);
 
-    expect(result.val[0]).toEqual({
-      ...peerP1,
-      id: 'p1',
-      user: {
-        ...guestG1,
-        id: 'g1',
-      },
-    });
-    expect(result.val[1]).toEqual({
-      ...peerP2,
-      id: 'p2',
-      user: {
-        g3: {
-          ...guestG3,
-          id: 'g3',
+    expect(actual).toEqual(
+      new Ok([
+        {
+          ...peerP1,
+          id: 'p1',
+          user: {
+            ...guestG1,
+            id: 'g1',
+          },
         },
-        g2: {
-          ...guestG2,
-          id: 'g2',
+        {
+          ...peerP2,
+          id: 'p2',
+          user: {
+            g3: {
+              ...guestG3,
+              id: 'g3',
+            },
+            g2: {
+              ...guestG2,
+              id: 'g2',
+            },
+          },
         },
-      },
-    });
+      ])
+    );
   });
 
   // describe('All Items In Collection By', () => {
@@ -1219,14 +1250,15 @@ describe('Update', () => {
       )
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...input,
-      id: 'p1',
-      hasJoinedRoom: true,
-      joinedRoomAt: now,
-      joinedRoomId: '3',
-    });
+    expect(actual).toEqual(
+      new Ok({
+        ...input,
+        id: 'p1',
+        hasJoinedRoom: true,
+        joinedRoomAt: now,
+        joinedRoomId: '3',
+      })
+    );
   });
 
   test('Trying to Update Item with Mismatching Foreign Keys throw Error', async () => {
@@ -1305,12 +1337,13 @@ describe('Update', () => {
       )
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...guestInput,
-      id: 'g5',
-      name: 'John Travolta',
-    });
+    expect(actual).toEqual(
+      new Ok({
+        ...guestInput,
+        id: 'g5',
+        name: 'John Travolta',
+      })
+    );
   });
 
   test('Updates with getter function for easy merging WITH ForeignKeys', async () => {
@@ -1319,6 +1352,7 @@ describe('Update', () => {
       name: 'Travolta',
       isGuest: true,
     } as const;
+
     await store
       .addItemToCollection('guests', guestInput, 'g5', { foreignKeys: {} })
       .resolve();
@@ -1365,24 +1399,22 @@ describe('Update', () => {
           },
         }
       )
-      .mapErr((e) => {
-        console.debug('error', e);
-      })
       .resolve();
 
-    expect(actual.ok).toBe(true);
     expect(updateGetterSpy).toHaveBeenCalledWith(input);
-    expect(actual.val).toEqual({
-      ...input,
-      hasJoinedRoom: true,
-      id: 'p1',
-      user: {
-        g5: {
-          ...guestInput,
-          id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        ...input,
+        hasJoinedRoom: true,
+        id: 'p1',
+        user: {
+          g5: {
+            ...guestInput,
+            id: 'g5',
+          },
         },
-      },
-    });
+      })
+    );
   });
 
   test('Updates with getter function that returns an AsyncOk Result for easy merging w/o ForeignKeys', async () => {
@@ -1418,12 +1450,13 @@ describe('Update', () => {
       )
       .resolve();
 
-    expect(actual.ok).toBe(true);
-    expect(actual.val).toEqual({
-      ...guestInput,
-      id: 'g5',
-      name: 'John Travolta 2nd',
-    });
+    expect(actual).toEqual(
+      new Ok({
+        ...guestInput,
+        id: 'g5',
+        name: 'John Travolta 2nd',
+      })
+    );
   });
 
   test('Attempting to Update using getter function that returns an AsyncErr Result w/o ForeignKeys throws an Err', async () => {
@@ -1519,19 +1552,20 @@ describe('Update', () => {
       )
       .resolve();
 
-    expect(actual.ok).toBe(true);
     expect(updateGetterSpy).toHaveBeenCalledWith(input);
-    expect(actual.val).toEqual({
-      ...input,
-      id: 'p1',
-      hasJoinedRoom: true,
-      user: {
-        g5: {
-          ...guestInput,
-          id: 'g5',
+    expect(actual).toEqual(
+      new Ok({
+        ...input,
+        id: 'p1',
+        hasJoinedRoom: true,
+        user: {
+          g5: {
+            ...guestInput,
+            id: 'g5',
+          },
         },
-      },
-    });
+      })
+    );
   });
 
   test('Attempting to Update using getter function that returns an AsyncErr Result WITH ForeignKeys throws an Err', async () => {
@@ -1652,12 +1686,13 @@ describe('Update', () => {
       .getItemInCollection('challenges', 'c1')
       .resolve();
 
-    expect(actualItemAfterUpdate.ok).toBe(true);
-    expect(actualItemAfterUpdate.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u222',
-    });
+    expect(actualItemAfterUpdate).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u222',
+      })
+    );
 
     const updatedItemByUpdatedByOldCreatedBy = await store
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
@@ -1669,12 +1704,13 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u222')
       .resolve();
 
-    expect(updatedItemByUpdatedCreatedBy.ok).toBe(true);
-    expect(updatedItemByUpdatedCreatedBy.val).toEqual({
-      ...input,
-      createdBy: 'u222',
-      id: 'c1',
-    });
+    expect(updatedItemByUpdatedCreatedBy).toEqual(
+      new Ok({
+        ...input,
+        createdBy: 'u222',
+        id: 'c1',
+      })
+    );
   });
 
   test('Updating an Item with one IndexBy multiple times back and forth between the value', async () => {
@@ -1710,11 +1746,12 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(addedItemByIndex.ok).toBe(true);
-    expect(addedItemByIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(addedItemByIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // Update the item to a new Index Vlaue (createdBy)
     await store
@@ -1730,12 +1767,13 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u2')
       .resolve();
 
-    expect(actualItemAfterUpdateToNewValue.ok).toBe(true);
-    expect(actualItemAfterUpdateToNewValue.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u2',
-    });
+    expect(actualItemAfterUpdateToNewValue).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u2',
+      })
+    );
 
     // Update the item to another new Index Vlaue (createdBy)
     await store
@@ -1751,12 +1789,13 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u3')
       .resolve();
 
-    expect(actualItemAfterUpdateToNewerValue.ok).toBe(true);
-    expect(actualItemAfterUpdateToNewerValue.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u3',
-    });
+    expect(actualItemAfterUpdateToNewerValue).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u3',
+      })
+    );
 
     // Update the item to the previous Index Value (createdBy)
     await store
@@ -1772,12 +1811,13 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(actualItemAfterUpdateToOldValue.ok).toBe(true);
-    expect(actualItemAfterUpdateToOldValue.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u1',
-    });
+    expect(actualItemAfterUpdateToOldValue).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u1',
+      })
+    );
   });
 
   test('an Item updated with an IndexBy cannot be retrieved by old IndexBy', async () => {
@@ -1811,11 +1851,12 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(addedItemByIndex.ok).toBe(true);
-    expect(addedItemByIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(addedItemByIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // Update the item to a new Index Vlaue (createdBy)
     await store
@@ -1831,12 +1872,13 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u2')
       .resolve();
 
-    expect(actualItemAfterUpdateToNewValue.ok).toBe(true);
-    expect(actualItemAfterUpdateToNewValue.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u2',
-    });
+    expect(actualItemAfterUpdateToNewValue).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u2',
+      })
+    );
 
     const actualItemReferenceByOldindexByValue = await store
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
@@ -1876,31 +1918,34 @@ describe('Update', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(itemByCreatedBy.ok).toBe(true);
-    expect(itemByCreatedBy.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(itemByCreatedBy).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     const itemByType = await store
       .getItemInCollectionBy('challenges', 'type', 'private')
       .resolve();
 
-    expect(itemByType.ok).toBe(true);
-    expect(itemByType.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(itemByType).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     const itemBySlug = await store
       .getItemInCollectionBy('challenges', 'slug', 'asda')
       .resolve();
 
-    expect(itemBySlug.ok).toBe(true);
-    expect(itemBySlug.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(itemBySlug).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // Update the item
     await store
@@ -1916,49 +1961,53 @@ describe('Update', () => {
       .getItemInCollection('challenges', 'c1')
       .resolve();
 
-    expect(actualItemAfterUpdate.ok).toBe(true);
-    expect(actualItemAfterUpdate.val).toEqual({
-      ...input,
-      id: 'c1',
-      createdBy: 'u222',
-      slug: '123',
-    });
+    expect(actualItemAfterUpdate).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+        createdBy: 'u222',
+        slug: '123',
+      })
+    );
 
     const updatedItemByUpdatedNewCreatedBy = await store
       .getItemInCollectionBy('challenges', 'createdBy', 'u222')
       .resolve();
 
-    expect(updatedItemByUpdatedNewCreatedBy.ok).toBe(true);
-    expect(updatedItemByUpdatedNewCreatedBy.val).toEqual({
-      ...input,
-      createdBy: 'u222',
-      id: 'c1',
-      slug: '123',
-    });
+    expect(updatedItemByUpdatedNewCreatedBy).toEqual(
+      new Ok({
+        ...input,
+        createdBy: 'u222',
+        id: 'c1',
+        slug: '123',
+      })
+    );
 
     const updatedItemByUpdatedByNewSlug = await store
       .getItemInCollectionBy('challenges', 'slug', '123')
       .resolve();
 
-    expect(updatedItemByUpdatedByNewSlug.ok).toBe(true);
-    expect(updatedItemByUpdatedByNewSlug.val).toEqual({
-      ...input,
-      createdBy: 'u222',
-      id: 'c1',
-      slug: '123',
-    });
+    expect(updatedItemByUpdatedByNewSlug).toEqual(
+      new Ok({
+        ...input,
+        createdBy: 'u222',
+        id: 'c1',
+        slug: '123',
+      })
+    );
 
     const updatedItemByUpdatedByOldType = await store
       .getItemInCollectionBy('challenges', 'type', 'private')
       .resolve();
 
-    expect(updatedItemByUpdatedByOldType.ok).toBe(true);
-    expect(updatedItemByUpdatedByOldType.val).toEqual({
-      ...input,
-      createdBy: 'u222',
-      id: 'c1',
-      slug: '123',
-    });
+    expect(updatedItemByUpdatedByOldType).toEqual(
+      new Ok({
+        ...input,
+        createdBy: 'u222',
+        id: 'c1',
+        slug: '123',
+      })
+    );
   });
 });
 
@@ -1981,26 +2030,28 @@ describe('Removal', () => {
       .addItemToCollection('peers', input, undefined, { foreignKeys: {} })
       .resolve();
 
-    expect(actualAfterAddition.ok).toBe(true);
-    expect(actualAfterAddition.val).toEqual({
-      item: {
-        ...input,
-        id: '1',
-      },
-      index: 1,
-      length: 1,
-    });
+    expect(actualAfterAddition).toEqual(
+      new Ok({
+        item: {
+          ...input,
+          id: '1',
+        },
+        index: 1,
+        length: 1,
+      })
+    );
 
     const removeRes = await store
       .removeItemInCollection('peers', '1')
       .resolve();
 
-    expect(removeRes.ok).toBe(true);
-    expect(removeRes.val).toEqual({
-      index: 1,
-      item: undefined,
-      length: 0,
-    });
+    expect(removeRes).toEqual(
+      new Ok({
+        index: 1,
+        item: undefined,
+        length: 0,
+      })
+    );
 
     const actualAfterRemoval = await store
       .getItemInCollection('peers', '1')
@@ -2041,11 +2092,12 @@ describe('Removal', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(addedItemByIndex.ok).toBe(true);
-    expect(addedItemByIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(addedItemByIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // // Remove the item
     await store.removeItemInCollection('challenges', 'c1').resolve();
@@ -2109,31 +2161,34 @@ describe('Removal', () => {
       .getItemInCollectionBy('challenges', 'createdBy', createdBy)
       .resolve();
 
-    expect(actualItemByCreatedByIndex.ok).toBe(true);
-    expect(actualItemByCreatedByIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(actualItemByCreatedByIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     const actualItemByCreatedAtIndex = await store
       .getItemInCollectionBy('challenges', 'createdAt', createdAt)
       .resolve();
 
-    expect(actualItemByCreatedAtIndex.ok).toBe(true);
-    expect(actualItemByCreatedAtIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(actualItemByCreatedAtIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     const actualItemByTypeIndex = await store
       .getItemInCollectionBy('challenges', 'type', type)
       .resolve();
 
-    expect(actualItemByTypeIndex.ok).toBe(true);
-    expect(actualItemByTypeIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(actualItemByTypeIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // Remove the item
     await store.removeItemInCollection('challenges', 'c1').resolve();
@@ -2214,11 +2269,12 @@ describe('Removal', () => {
       .getItemInCollectionBy('challenges', 'createdBy', 'u1')
       .resolve();
 
-    expect(addedItemByIndex.ok).toBe(true);
-    expect(addedItemByIndex.val).toEqual({
-      ...input,
-      id: 'c1',
-    });
+    expect(addedItemByIndex).toEqual(
+      new Ok({
+        ...input,
+        id: 'c1',
+      })
+    );
 
     // // Remove the item
     await store
@@ -2264,22 +2320,19 @@ describe('Queue', () => {
         .getQueueSize('quickPairings')
         .resolve();
 
-      expect(actualBeforeRemoval.ok).toBe(true);
-      expect(actualBeforeRemoval.val).toBe(1);
+      expect(actualBeforeRemoval).toEqual(new Ok(1));
 
       const removalResponse = await store
         .removeFromQueue('quickPairings', qpInput1)
         .resolve();
 
-      expect(removalResponse.ok).toBe(true);
-      expect(removalResponse.val).toBe(undefined);
+      expect(removalResponse).toEqual(new Ok(undefined));
 
       const actualAfterRemoval = await store
         .getQueueSize('quickPairings')
         .resolve();
 
-      expect(actualAfterRemoval.ok).toBe(true);
-      expect(actualAfterRemoval.val).toBe(0);
+      expect(actualAfterRemoval).toEqual(new Ok(0));
     });
 
     test('returns error when item not exactly the same', async () => {
@@ -2293,8 +2346,7 @@ describe('Queue', () => {
         .getQueueSize('quickPairings')
         .resolve();
 
-      expect(actualBeforeRemoval.ok).toBe(true);
-      expect(actualBeforeRemoval.val).toBe(1);
+      expect(actualBeforeRemoval).toEqual(new Ok(1));
 
       const removalResponse = await store
         .removeFromQueue('quickPairings', {
@@ -2310,8 +2362,7 @@ describe('Queue', () => {
         .getQueueSize('quickPairings')
         .resolve();
 
-      expect(actualAfterRemoval.ok).toBe(true);
-      expect(actualAfterRemoval.val).toBe(1);
+      expect(actualAfterRemoval).toEqual(new Ok(1));
     });
 
     test('finds and removes the correct item even if its data structure is complicated/scrambled and could trip the JSON.stringify()', async () => {
@@ -2330,8 +2381,7 @@ describe('Queue', () => {
         .getQueueSize('queueWithManyKeys')
         .resolve();
 
-      expect(actualBeforeRemoval.ok).toBe(true);
-      expect(actualBeforeRemoval.val).toBe(1);
+      expect(actualBeforeRemoval).toEqual(new Ok(1));
 
       // This is scrambled on purpose
       const removalResponse = await store
@@ -2345,15 +2395,13 @@ describe('Queue', () => {
         })
         .resolve();
 
-      expect(removalResponse.ok).toBe(true);
-      expect(removalResponse.val).toBe(undefined);
+      expect(removalResponse).toEqual(new Ok(undefined));
 
       const actualAfterRemoval = await store
         .getQueueSize('quickPairings')
         .resolve();
 
-      expect(actualAfterRemoval.ok).toBe(true);
-      expect(actualAfterRemoval.val).toBe(0);
+      expect(actualAfterRemoval).toEqual(new Ok(0));
     });
   });
 });
@@ -2401,26 +2449,25 @@ describe('Atomic: Lock', () => {
       )
       .resolve();
 
-    const resG1 = await store
-      .getItemInCollection('simpleItems', 'g1')
-      .resolve();
-    const resG2 = await store
-      .getItemInCollection('simpleItems', 'g2')
-      .resolve();
+    const actual = await AsyncResult.all(
+      store.getItemInCollection('simpleItems', 'g1'),
+      store.getItemInCollection('simpleItems', 'g2')
+    ).resolve();
 
-    expect(resG1.ok).toBe(true);
-    expect(resG1.val).toEqual({
-      name: 'Gigi',
-      id: 'g1',
-      age: 23,
-    });
-
-    expect(resG2.ok).toBe(true);
-    expect(resG2.val).toEqual({
-      name: 'Jack',
-      id: 'g2',
-      age: 28,
-    });
+    expect(actual).toEqual(
+      new Ok([
+        {
+          name: 'Gigi',
+          id: 'g1',
+          age: 23,
+        },
+        {
+          name: 'Jack',
+          id: 'g2',
+          age: 28,
+        },
+      ])
+    );
   });
 
   // TODO: Bring back after!
@@ -2460,17 +2507,20 @@ describe('Atomic: Lock', () => {
       )
       .resolve();
 
-    const res = await store.getItemInCollection('simpleItems', 'g1').resolve();
+    const actual = await store
+      .getItemInCollection('simpleItems', 'g1')
+      .resolve();
 
-    expect(res.ok).toBe(true);
-    expect(res.val).toEqual({
-      id: 'g1',
-      name: 'Arnold',
-      age: 34,
-    });
+    expect(actual).toEqual(
+      new Ok({
+        id: 'g1',
+        name: 'Arnold',
+        age: 34,
+      })
+    );
   });
 
-  test('An failed updated doesnt hold the Lock', async () => {
+  test('A failed updated doesnt hold the Lock', async () => {
     await store
       .addItemToCollection(
         'simpleItems',
@@ -2506,13 +2556,16 @@ describe('Atomic: Lock', () => {
       )
       .resolve();
 
-    const res = await store.getItemInCollection('simpleItems', 'g1').resolve();
+    const actual = await store
+      .getItemInCollection('simpleItems', 'g1')
+      .resolve();
 
-    expect(res.ok).toBe(true);
-    expect(res.val).toEqual({
-      id: 'g1',
-      name: 'Arnold',
-      age: 23,
-    });
+    expect(actual).toEqual(
+      new Ok({
+        id: 'g1',
+        name: 'Arnold',
+        age: 23,
+      })
+    );
   });
 });
