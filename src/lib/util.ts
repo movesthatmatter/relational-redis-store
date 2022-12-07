@@ -122,15 +122,7 @@ export type UpdateableCollectionPropsGetter<T extends {}> =
       | CollectionItemUpdateableProps<T>
       | AsyncResult<CollectionItemUpdateableProps<T>, unknown>);
 
-export const toCollectionId = (collection: string, id: string) => `${collection}:${id}`;
-export const fromCollectionId = (collection: string, formattedId: string) => {
-  const pattern = `${collection}:`;
-  if (formattedId.indexOf(pattern) === 0) {
-    return formattedId.slice(pattern.length);
-  }
-
-  return formattedId;
-};
+export const toCollectionId = (collection: string, id: string) => id;
 export const toQueueName = (queue: string) => `queue:${queue}`;
 
 export const toIndexedCollectionName = (collection: string, byField: string | number) => `${collection}:by:${byField}`;
