@@ -84,14 +84,16 @@ export class Store<
   }
 
   lockCollection<K extends CollectionKey>(collection: K) {
-    return this.redisLock(`locked:${collection}`);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
+    return this.redisLock(`locked:${nameSpacedCollection}`);
   }
 
   lockCollectionItem<K extends CollectionKey>(collection: K, id: string) {
-    return this.redisLock(`locked:${collection}:${id}`);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
+    return this.redisLock(`locked:${nameSpacedCollection}:${id}`);
   }
 
-  private toCollectionKey = <K extends CollectionKey>(collection: K) =>
+  private toNamespacedCollection = <K extends CollectionKey>(collection: K) =>
     `${this.namespace}${collection}` as K;
 
   addItemToCollection<
@@ -100,7 +102,7 @@ export class Store<
     IndexBy extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>,
     FKs extends ForeignKeys<T, CollectionMap>
   >(
-    rawCollection: K,
+    collection: K,
     val: CollectionItem<UnidentifiableModel<T>, CollectionMap, FKs>,
     id?: string,
     opts: {
@@ -110,7 +112,7 @@ export class Store<
       foreignKeys: {} as FKs,
     }
   ): AsyncResult<CollectionItemOrReply<T>, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper<CollectionItemOrReply<T>, StoreErrors>(
       async () => {
@@ -120,10 +122,10 @@ export class Store<
         const resolvedId = id
           ? id
           : await this.redis
-              .hget(collection, '_index')
+              .hget(nameSpacedCollection, '_index')
               .then((v) => (v !== null ? String(Number(v) + 1) : '1'));
 
-        const field = toCollectionId(collection, resolvedId);
+        const field = toCollectionId(nameSpacedCollection, resolvedId);
 
         let item: CollectionItemMetadata<T, CollectionMap> = {
           val: val as unknown as CollectionItemMetadata<
@@ -144,9 +146,10 @@ export class Store<
               indexedIn: opts.indexBy.reduce(
                 (prev, byField) => ({
                   ...prev,
-                  [toIndexedCollectionName(collection, String(byField))]: (
-                    val as any
-                  )[byField],
+                  [toIndexedCollectionName(
+                    nameSpacedCollection,
+                    String(byField)
+                  )]: (val as any)[byField],
                 }),
                 {}
               ),
@@ -155,15 +158,15 @@ export class Store<
 
         let transactions = this.redis
           .multi()
-          .hset(collection, [field, JSON.stringify(item)])
-          .hincrby(collection, '_index', 1)
-          .hlen(collection)
-          .hget(collection, field);
+          .hset(nameSpacedCollection, [field, JSON.stringify(item)])
+          .hincrby(nameSpacedCollection, '_index', 1)
+          .hlen(nameSpacedCollection)
+          .hget(nameSpacedCollection, field);
 
         // If there is an indexBy, create the indexBy hashMaps
         opts.indexBy?.forEach((key) => {
           transactions = transactions.hset(
-            toIndexedCollectionName(collection, String(key)),
+            toIndexedCollectionName(nameSpacedCollection, String(key)),
             `${(val as any)[key]}`,
             resolvedId
           );
@@ -204,12 +207,12 @@ export class Store<
   }
 
   getCollectionIndex<K extends CollectionKey>(
-    rawCollection: K
+    collection: K
   ): AsyncResult<number, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
-      const v = await this.redis.hget(collection, '_index');
+      const v = await this.redis.hget(nameSpacedCollection, '_index');
 
       if (v === null) {
         // If the index to a collection doesnt exist it means it's not instantiated yet
@@ -221,13 +224,13 @@ export class Store<
   }
 
   getCollectionLength<K extends CollectionKey>(
-    rawCollection: K
+    collection: K
   ): AsyncResult<number, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       try {
-        const v = await this.redis.hlen(collection);
+        const v = await this.redis.hlen(nameSpacedCollection);
 
         return new Ok(Number(v));
       } catch (error) {
@@ -300,6 +303,8 @@ export class Store<
 
       type RedisMulti = ReturnType<RedisClient['MULTI']>;
 
+      // console.log('foreignCollection', foreignCollection);
+
       const redisCollectionAndTransactionsGetteriZip =
         foreignKeysWithValuesZip.reduce((prev, [foreignCollection, fids]) => {
           if (fids.length === 0) {
@@ -311,7 +316,10 @@ export class Store<
             {
               collection: foreignCollection,
               getTransaction: (redis: RedisMulti) =>
-                redis.hmget(foreignCollection, ...fids),
+                redis.hmget(
+                  this.toNamespacedCollection(foreignCollection as any),
+                  ...fids
+                ),
             },
           ];
         }, [] as { collection: string; getTransaction: (r: RedisMulti) => RedisMulti }[]);
@@ -456,11 +464,9 @@ export class Store<
     K extends CollectionKey,
     T extends CollectionMap[K]
   >(
-    rawCollection: K,
+    collection: K,
     ids: string[]
   ): AsyncResult<CollectionItemMetadataReply<T, CollectionMap>[], StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
-
     return this.getShallowItemsInCollectionWithMetadata(collection, ids)
       .flatMap(
         (itemsMetadata) =>
@@ -483,19 +489,19 @@ export class Store<
     K extends CollectionKey,
     T extends CollectionMap[K]
   >(
-    rawCollection: K,
+    collection: K,
     ids: string[]
   ): AsyncResult<CollectionItemMetadata<T, CollectionMap>[], StoreErrors> {
     if (ids.length === 0) {
       return new AsyncOk([]);
     }
 
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       const redisReplies = await this.redis.hmget(
-        collection,
-        ...ids.map((id) => toCollectionId(collection, id))
+        nameSpacedCollection,
+        ...ids.map((id) => toCollectionId(nameSpacedCollection, id))
       );
 
       const itemsMetadataResults = redisReplies.map((reply) => {
@@ -532,11 +538,9 @@ export class Store<
   }
 
   getItemInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    rawCollection: K,
+    collection: K,
     id: string
   ): AsyncResult<T, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
-
     return this.getItemsInCollectionWithMetadata<K, T>(collection, [id]).map(
       ([m]) => this.metadataReplyToCollectionItem(m)
     );
@@ -547,15 +551,15 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    rawCollection: K,
+    collection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<T, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       const referencedId = await this.redis.hget(
-        toIndexedCollectionName(collection, String(byKey)),
+        toIndexedCollectionName(nameSpacedCollection, String(byKey)),
         String(keyVal)
       );
 
@@ -575,15 +579,15 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    rawCollection: K,
+    collection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<string, void> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       const referencedId = await this.redis.hget(
-        toIndexedCollectionName(collection, String(byKey)),
+        toIndexedCollectionName(nameSpacedCollection, String(byKey)),
         String(keyVal)
       );
 
@@ -596,11 +600,9 @@ export class Store<
   }
 
   getItemsInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    rawCollection: K,
+    collection: K,
     ids: string[]
   ): AsyncResult<T[], StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
-
     return this.getItemsInCollectionWithMetadata<K, T>(collection, ids).map(
       (metadatas) => metadatas.map((m) => this.metadataReplyToCollectionItem(m))
     );
@@ -646,12 +648,12 @@ export class Store<
   }
 
   getAllItemsInCollection<K extends CollectionKey, T extends CollectionMap[K]>(
-    rawCollection: K
+    collection: K
   ): AsyncResult<T[], StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
-      const resultHash = await this.redis.hgetall(collection);
+      const resultHash = await this.redis.hgetall(nameSpacedCollection);
 
       if (!resultHash) {
         return new Ok([]);
@@ -739,11 +741,9 @@ export class Store<
   // }
 
   isItemInCollection<K extends CollectionKey>(
-    rawCollection: K,
+    collection: K,
     id: string
   ): AsyncResult<boolean, never> {
-    const collection = this.toCollectionKey(rawCollection);
-
     return this.getShallowItemsInCollectionWithMetadata<K, any>(collection, [
       id,
     ])
@@ -756,15 +756,15 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    rawCollection: K,
+    collection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<boolean, never> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper<string, void>(async () => {
       const referencedId = await this.redis.hget(
-        toIndexedCollectionName(collection, String(byKey)),
+        toIndexedCollectionName(nameSpacedCollection, String(byKey)),
         String(keyVal)
       );
 
@@ -783,14 +783,14 @@ export class Store<
     T extends CollectionMap[K],
     FKs extends ForeignKeys<T, CollectionMap>
   >(
-    rawCollection: K,
+    collection: K,
     id: string,
     itemModelGetter: UpdateableCollectionPropsGetter<T>,
     opts: {
       foreignKeys: FKs;
     }
   ): AsyncResult<T, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       const unlock = await this.lockCollectionItem(collection, id);
@@ -818,8 +818,6 @@ export class Store<
           .flatMap(
             (prev) =>
               new AsyncResultWrapper(async () => {
-                const field = toCollectionId(collection, id);
-
                 const unresolvedItemModel =
                   typeof itemModelGetter === 'function'
                     ? itemModelGetter(
@@ -895,8 +893,12 @@ export class Store<
                 };
 
                 const payload = JSON.stringify(nextItemWithMetadata);
+                const field = toCollectionId(nameSpacedCollection, id);
 
-                transactions = transactions.hset(collection, [field, payload]);
+                transactions = transactions.hset(nameSpacedCollection, [
+                  field,
+                  payload,
+                ]);
 
                 const res = await this.redis.execMulti(transactions);
 
@@ -974,13 +976,13 @@ export class Store<
   }
 
   removeCollection<K extends CollectionKey>(
-    rawCollection: K
+    collection: K
   ): AsyncResult<void, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper(async () => {
       try {
-        await this.redis.del(collection);
+        await this.redis.del(nameSpacedCollection);
 
         return Ok.EMPTY;
       } catch (e) {
@@ -990,15 +992,13 @@ export class Store<
   }
 
   removeItemInCollection<K extends CollectionKey>(
-    rawCollection: K,
+    collection: K,
     id: string
   ): AsyncResult<CollectionItemRemovalReply, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
+    const nameSpacedCollection = this.toNamespacedCollection(collection);
 
     return new AsyncResultWrapper<CollectionItemRemovalReply, StoreErrors>(
       async () => {
-        const field = toCollectionId(collection, id);
-
         const itemBeforeRemoval =
           await this.getShallowItemsInCollectionWithMetadata(collection, [
             id,
@@ -1008,11 +1008,13 @@ export class Store<
           return new Err('CollectionFieldInexistent');
         }
 
+        const field = toCollectionId(nameSpacedCollection, id);
+
         const transactions = this.redis
           .multi()
-          .hdel(collection, field)
-          .hget(collection, '_index')
-          .hlen(collection);
+          .hdel(nameSpacedCollection, field)
+          .hget(nameSpacedCollection, '_index')
+          .hlen(nameSpacedCollection);
 
         const res = await this.redis.execMulti(transactions);
 
@@ -1074,12 +1076,10 @@ export class Store<
     T extends CollectionMap[K],
     F extends OnlyKeysOfType<string | number, UnidentifiableModel<T>>
   >(
-    rawCollection: K,
+    collection: K,
     byKey: F,
     keyVal: string | number
   ): AsyncResult<CollectionItemRemovalReply, StoreErrors> {
-    const collection = this.toCollectionKey(rawCollection);
-
     return this.getIndexedItemReference<K, T, F>(collection, byKey, keyVal)
       .flatMap((id) => this.removeItemInCollection(collection, id))
       .flatMapErr(() => new Err('CollectionFieldInexistent'));

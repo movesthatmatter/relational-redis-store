@@ -6,7 +6,10 @@ import { CollectionMapBase, QueueMapBase } from './util';
 export const createMockStore = <
   CollectionMap extends CollectionMapBase,
   QueueMap extends QueueMapBase = {}
->() =>
+>(config?: {
+  namespace?: string;
+}) =>
   new Store<CollectionMap, QueueMap>(
-    getRedisMockClient(redisMock.createClient()) as any
+    getRedisMockClient(redisMock.createClient()) as any,
+    config
   );
