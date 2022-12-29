@@ -1,2 +1,6 @@
 tsconfig.json
+tsconfig.tests.json
+jest.config.json
 src
+coverage
+.vscode
