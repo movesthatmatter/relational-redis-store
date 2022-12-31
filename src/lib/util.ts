@@ -3,6 +3,8 @@ import { AsyncResult } from 'ts-async-results';
 export type UnidentifiableModel<T extends {}> = Omit<T, 'id'>;
 export type ModelWithoutTimestamps<T extends {}> = Omit<T, 'createdAt' | 'updatedAt'>;
 
+export type UnknownRecord = Record<string, unknown>;
+
 export type CollectionItemOrReply<T> = {
   index: number;
   length: number;
@@ -26,11 +28,11 @@ type ForeignOneToManyKeys<CollectionsMap extends {}> = {
 };
 
 export type CollectionMapBase = {
-  [key: string]: { id: string } & object;
+  [key: string]: { id: string } & UnknownRecord;
 };
 
 export type QueueMapBase = {
-  [key: string]: object;
+  [key: string]: UnknownRecord;
 };
 
 export type CollectionItemRemovalReply = CollectionItemOrReply<void>;
