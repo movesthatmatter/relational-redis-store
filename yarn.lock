@@ -2215,6 +2215,23 @@ regexp.prototype.flags@^1.4.3:
     define-properties "^1.1.3"
     functions-have-names "^1.2.2"
 
+relational-redis-store@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/relational-redis-store/-/relational-redis-store-0.6.1.tgz#4d0011cad8ef630113f1fb8bb689b69c9984a77b"
+  integrity sha512-Rs9mRLo+6dCFGduQC1Tv6jiVlNyIaGc8LYWBNkZgs6Rda7FioCEvC3FLi+TORLHRMvbcq6++IxZv1cE+9MBrGQ==
+  dependencies:
+    "@types/deep-equal" "^1.0.1"
+    "@types/json-stable-stringify" "^1.0.34"
+    deep-equal "^2.1.0"
+    deepmerge "^4.2.2"
+    flatten "^1.0.3"
+    handy-redis "1.8.3"
+    json-stable-stringify "^1.0.2"
+    redis "3.0.2"
+    redis-lock "0.1.4"
+    ts-async-results "^0.3.0"
+    tslib "^2.4.1"
+
 require-directory@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/require-directory/-/require-directory-2.1.1.tgz#8c64ad5fd30dab1c976e2344ffe7f792a6a6df42"

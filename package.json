@@ -15,6 +15,7 @@
     "json-stable-stringify": "^1.0.2",
     "redis": "3.0.2",
     "redis-lock": "0.1.4",
+    "relational-redis-store": "^0.6.1",
     "ts-async-results": "^0.3.0",
     "tslib": "^2.4.1"
   },
