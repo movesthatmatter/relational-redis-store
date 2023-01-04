@@ -2215,23 +2215,6 @@ regexp.prototype.flags@^1.4.3:
     define-properties "^1.1.3"
     functions-have-names "^1.2.2"
 
-relational-redis-store@^0.6.1:
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/relational-redis-store/-/relational-redis-store-0.6.1.tgz#4d0011cad8ef630113f1fb8bb689b69c9984a77b"
-  integrity sha512-Rs9mRLo+6dCFGduQC1Tv6jiVlNyIaGc8LYWBNkZgs6Rda7FioCEvC3FLi+TORLHRMvbcq6++IxZv1cE+9MBrGQ==
-  dependencies:
-    "@types/deep-equal" "^1.0.1"
-    "@types/json-stable-stringify" "^1.0.34"
-    deep-equal "^2.1.0"
-    deepmerge "^4.2.2"
-    flatten "^1.0.3"
-    handy-redis "1.8.3"
-    json-stable-stringify "^1.0.2"
-    redis "3.0.2"
-    redis-lock "0.1.4"
-    ts-async-results "^0.3.0"
-    tslib "^2.4.1"
-
 require-directory@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/require-directory/-/require-directory-2.1.1.tgz#8c64ad5fd30dab1c976e2344ffe7f792a6a6df42"
@@ -2427,10 +2410,10 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-ts-async-results@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.3.0.tgz#4f985450ebcd6db5d45304def9d81a69d633e342"
-  integrity sha512-fmB4YXULYhxTO2kz11DSBp91MadASS7htVDt4SuvtmmCEo545g7f2C+XUIqHPFfcfB1D5S9Q84KuONz03L5VfQ==
+ts-async-results@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.3.2.tgz#7ba78a1f709e4c9e96a83dffdd506bae432c4f98"
+  integrity sha512-Xh0DZj7oeEmzKRnRHuEXnCEZNCwBpbRut1bHehxAN3GWHdz0hVti7D1wRtHIrGNcgzzF3oevzsaWohfGx2kXDw==
   dependencies:
     conditional-type-checks "^1.0.5"
     ts-results "^3.0.0"
