@@ -21,6 +21,18 @@ export const getRedisMockClient = (redis: RedisClient) => ({
           multi.exec((err, data) => (err ? reject(err) : resolve(data)))
         )
     ),
+  del: (key: string) => delay().then(
+    () =>
+      new Promise((resolve, reject) => {
+        redis.del(key, (err, response) => {
+          if (response === 1) {
+            resolve(1);
+          } else {
+            reject(0);
+          }
+        });
+      })
+  ),
 
   // Queue
   rpush: promisify(redis.rpush).bind(redis),
