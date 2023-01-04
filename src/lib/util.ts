@@ -28,11 +28,11 @@ type ForeignOneToManyKeys<CollectionsMap extends {}> = {
 };
 
 export type CollectionMapBase = {
-  [key: string]: { id: string } & UnknownRecord;
+  [key: string]: { id: string } & object;
 };
 
 export type QueueMapBase = {
-  [key: string]: UnknownRecord;
+  [key: string]: object;
 };
 
 export type CollectionItemRemovalReply = CollectionItemOrReply<void>;
