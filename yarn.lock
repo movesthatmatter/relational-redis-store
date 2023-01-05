@@ -2410,10 +2410,10 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-ts-async-results@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.3.2.tgz#7ba78a1f709e4c9e96a83dffdd506bae432c4f98"
-  integrity sha512-Xh0DZj7oeEmzKRnRHuEXnCEZNCwBpbRut1bHehxAN3GWHdz0hVti7D1wRtHIrGNcgzzF3oevzsaWohfGx2kXDw==
+ts-async-results@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.3.3.tgz#9ff1e9cdd51dfae1f2eea095c6eb7f3b0346f4b3"
+  integrity sha512-oTr+sNPBly717zM4c05/e76gEbiX63GIoprEKqXOiQZ1E10VvflpVjQ7T7SJjwLGtFwd8lVf5wfNPKna4haOXg==
   dependencies:
     conditional-type-checks "^1.0.5"
     ts-results "^3.0.0"
