@@ -1,8 +1,8 @@
 import { Err, Ok } from 'ts-results';
 import { AsyncResult, AsyncResultWrapper } from 'ts-async-results';
 import { getRedisMockClient } from './redisMock';
-import { loggerUtil } from './logger';
 import { createMockStore } from './mockStoreFactory';
+import { Store } from './Store';
 
 type Guest = {
   avatarId: string;
@@ -66,18 +66,27 @@ type QueueMap = {
   };
 };
 
-let store = createMockStore<CollectionMap, QueueMap>({ namespace: 'test' });
+const noop = () => {};
+
+const silentLogger = {
+  ...console,
+  info: noop,
+  log: noop,
+  warn: noop,
+  error: noop,
+};
+
+let store: Store<CollectionMap, QueueMap>;
+
+beforeAll(() => {
+  store = createMockStore<CollectionMap, QueueMap>({
+    namespace: 'test',
+    logger: silentLogger,
+  });
+});
 
 beforeEach(() => {
   store.flush();
-});
-
-beforeAll(() => {
-  loggerUtil.disable();
-});
-
-afterAll(() => {
-  loggerUtil.enable();
 });
 
 describe('Addition', () => {
@@ -444,7 +453,9 @@ describe('Getting Single Item', () => {
 
   test('Get Item with 1Level Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const store = createMockStore<CollectionMap, QueueMap>();
+    const store = createMockStore<CollectionMap, QueueMap>({
+      logger: silentLogger,
+    });
 
     const guestInput = {
       avatarId: '12',
@@ -501,7 +512,7 @@ describe('Getting Single Item', () => {
 
   test('Get Item with Nested Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const store = createMockStore<any>();
+    const store = createMockStore<any>({ logger: silentLogger });
 
     const guestInput = {
       avatarId: '12',
@@ -592,7 +603,7 @@ describe('Getting Single Item', () => {
 
   test('Get Item with Many Many Nested Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const store = createMockStore<any>();
+    const store = createMockStore<any>({ logger: silentLogger });
 
     const guestInputG5 = {
       avatarId: '12',
@@ -887,7 +898,7 @@ describe('Getting Multiple Items', () => {
 
   test('Get Newly Added Items with Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const store = createMockStore();
+    const store = createMockStore({ logger: silentLogger });
 
     const guestG4 = {
       isGuest: true,
@@ -1025,7 +1036,7 @@ describe('Retrieve All Items in collection', () => {
 
   test('All Items With Foreign Keys', async () => {
     // This is needed here for the spies to be accurate
-    const store = createMockStore();
+    const store = createMockStore({ logger: silentLogger });
 
     const guestG1 = {
       isGuest: true,

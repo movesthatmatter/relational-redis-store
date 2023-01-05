@@ -32,7 +32,6 @@ import {
 import redisLock from 'redis-lock';
 import { promisify } from 'util';
 import { RedisClient } from 'redis';
-import { logger } from './logger';
 
 export type StoreErrors =
   | 'CollectionFieldInexistent'
@@ -43,6 +42,11 @@ export type StoreErrors =
   | 'CollectionOrFieldInexistent'
   | 'QueueItemNotFound'
   | 'GenericRedisFailure';
+
+export type StoreConfig = {
+  namespace?: string;
+  logger?: typeof console;
+};
 
 export class Store<
   CollectionMap extends CollectionMapBase,
@@ -57,23 +61,21 @@ export class Store<
 
   private redisLock: (resource: string) => Promise<(done?: () => void) => void>;
 
-  constructor(
-    private redis: IHandyRedis,
-    config?: {
-      namespace?: string;
-    }
-  ) {
+  private logger: typeof console;
+
+  constructor(private redis: IHandyRedis, config?: StoreConfig) {
+    this.logger = config?.logger || console;
     this.redisClient = this.redis;
 
     this.redis.redis.on('connect', () => {
-      logger.info('[Store] Redis Connected', {
+      this.logger.info('[Store] Redis Connected', {
         connection: this.redis.redis.connection_id,
       });
     });
 
     // TODO: Make sure this works!
     this.redis.redis.off('connect', () => {
-      logger.info('[Store] Redis Disonnected', {
+      this.logger.info('[Store] Redis Disonnected', {
         connection: this.redis.redis.connection_id,
       });
     });
@@ -197,7 +199,7 @@ export class Store<
       }
     ).map(
       AsyncResult.passThrough((next) => {
-        logger.info('[Store] Item Added', {
+        this.logger.info('[Store] Item Added', {
           collection,
           id: next.item.id,
           length: next.index,
@@ -234,7 +236,7 @@ export class Store<
 
         return new Ok(Number(v));
       } catch (error) {
-        logger.error('[Store] Get Collection Length', {
+        this.logger.error('[Store] Get Collection Length', {
           collection,
           error,
         });
@@ -477,7 +479,7 @@ export class Store<
       )
       .mapErr(
         AsyncResult.passThrough((error) => {
-          logger.error(`[Store] getItemsInCollectionWithMetadata`, {
+          this.logger.error(`[Store] getItemsInCollectionWithMetadata`, {
             collection,
             error,
           });
@@ -525,7 +527,7 @@ export class Store<
       >;
     }).mapErr(
       AsyncResult.passThrough((error) => {
-        logger.error(
+        this.logger.error(
           '[Store] getShallowItemsInCollectionWithMetadata Collection:',
           {
             collection,
@@ -799,7 +801,7 @@ export class Store<
         this.getShallowItemsInCollectionWithMetadata(collection, [id])
           .flatMap(([prev]) => {
             if (!deepEqual(opts.foreignKeys || {}, prev.foreignKeys || {})) {
-              logger.error(
+              this.logger.error(
                 '[Store] UpdateItemInCollection ForeignKeys Mismatch Error',
                 {
                   forCollection: collection,
@@ -921,7 +923,7 @@ export class Store<
           )
           .map(
             AsyncResult.passThrough((nextItem) => {
-              logger.info('[Store] Item Updated', {
+              this.logger.info('[Store] Item Updated', {
                 collection,
                 id: nextItem.id,
               });
@@ -1062,7 +1064,7 @@ export class Store<
       }
     ).map(
       AsyncResult.passThrough((next) => {
-        logger.info('[Store] Item Removed', {
+        this.logger.info('[Store] Item Removed', {
           collection,
           id,
           length: next.length,
