@@ -2410,13 +2410,13 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-ts-async-results@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.5.2.tgz#75b9a12b901071ef52cd62a6c6c8b0f8d669f100"
-  integrity sha512-swceTmNR75BVZqgGkygzzNmJ1Y4/DCbhyr+UOcs2etKvTeOQoWDM8ZAVzg1KY5uRhhQn+9H66tclGYuY2eW+pw==
+ts-async-results@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/ts-async-results/-/ts-async-results-0.5.3.tgz#35c340089f3bb923cf4cd6c767f087c5b19db0ca"
+  integrity sha512-3vDuaiCf5FtGTVZ9RKft/0TV0ZJzt89zFy1lOcKkZQdPrYb06mwWN9DHsnmxnyKqIwNEPZdhv/mRwG+dC5mlIA==
   dependencies:
     conditional-type-checks "^1.0.5"
-    ts-results "3.0.0"
+    ts-results "^3.0.0"
 
 ts-jest@^29.0.3:
   version "29.0.3"
@@ -2432,10 +2432,10 @@ ts-jest@^29.0.3:
     semver "7.x"
     yargs-parser "^21.0.1"
 
-ts-results@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/ts-results/-/ts-results-3.0.0.tgz#f28fc4c6ac0e94fc3af4ea08be42617e169a7ff5"
-  integrity sha512-Txxbn48H4cOMC0v38FMwRJD/uVs/1AoWvfVj0Lqngv6YGvmOibANoLOoa+1mP5G4InGxSvbfZyZyxS9DIWfU3g==
+ts-results@^3.0.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/ts-results/-/ts-results-3.3.0.tgz#68623a6c18e65556287222dab76498a28154922f"
+  integrity sha512-FWqxGX2NHp5oCyaMd96o2y2uMQmSu8Dey6kvyuFdRJ2AzfmWo3kWa4UsPlCGlfQ/qu03m09ZZtppMoY8EMHuiA==
 
 tslib@^2.4.1:
   version "2.4.1"
