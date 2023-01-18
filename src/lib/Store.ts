@@ -929,10 +929,9 @@ export class Store<
               });
             })
           )
-          // Finally Unlock the resource
-          .map(AsyncResult.passThrough(() => unlock()))
-          .mapErr(AsyncResult.passThrough(() => unlock()))
           .resolve()
+          // Finally Unlock the resource
+          .finally(unlock)
       );
     });
   }

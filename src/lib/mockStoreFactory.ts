@@ -1,5 +1,5 @@
 import redisMock from 'redis-mock';
-import { getRedisMockClient } from './redisMock';
+import { getRedisMockClient } from './tests/redisMock';
 import { Store, StoreConfig } from './Store';
 import { CollectionMapBase, QueueMapBase } from './util';
 

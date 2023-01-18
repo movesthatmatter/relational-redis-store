@@ -132,3 +132,6 @@ export const getByFieldNameFromIndexedCollection = (indexedCollection: string) =
 
 export const objectKeys = <O extends object>(o: O) => Object.keys(o) as (keyof O)[];
 
+export const delay = (ms: number) => new Promise((resolve) => {
+  setTimeout(resolve, ms);
+});

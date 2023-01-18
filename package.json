@@ -23,7 +23,7 @@
     "@types/redis": "^2.8.27",
     "@types/redis-mock": "^0.17.1",
     "jest": "^29.3.1",
-    "redis-mock": "^0.56.3",
+    "redis-mock": "https://github.com/movesthatmatter/redis-mock.git#fix-set-nx-and-zpopmin",
     "ts-jest": "^29.0.3",
     "typescript": "v4.7"
   },

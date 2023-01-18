@@ -2174,10 +2174,9 @@ redis-lock@0.1.4:
   resolved "https://registry.yarnpkg.com/redis-lock/-/redis-lock-0.1.4.tgz#e83590bee22b5f01cdb65bfbd88d988045356272"
   integrity sha512-7/+zu86XVQfJVx1nHTzux5reglDiyUCDwmW7TSlvVezfhH2YLc/Rc8NE0ejQG+8/0lwKzm29/u/4+ogKeLosiA==
 
-redis-mock@^0.56.3:
-  version "0.56.3"
-  resolved "https://registry.yarnpkg.com/redis-mock/-/redis-mock-0.56.3.tgz#e96471bcc774ddc514c2fc49cdd03cab2baecd89"
-  integrity sha512-ynaJhqk0Qf3Qajnwvy4aOjS4Mdf9IBkELWtjd+NYhpiqu4QCNq6Vf3Q7c++XRPGiKiwRj9HWr0crcwy7EiPjYQ==
+"redis-mock@https://github.com/movesthatmatter/redis-mock.git#fix-set-nx-and-zpopmin":
+  version "0.56.4"
+  resolved "https://github.com/movesthatmatter/redis-mock.git#f205b1719fbe5188c432c1a1f86d970b0ef166d9"
 
 redis-parser@^3.0.0:
   version "3.0.0"
